@@ -1,0 +1,5 @@
+torch==2.4.1+cu126
+numpy==2.3.3
+SoundCard==0.4.5
+faster-whisper==1.2.0
+openai==2.1.0

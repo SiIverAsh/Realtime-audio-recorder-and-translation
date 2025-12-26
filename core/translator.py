@@ -1,26 +1,17 @@
-from openai import OpenAI
-from core.config import DEEPSEEK_API_KEY
-import re
-
-client = OpenAI(
-    api_key=DEEPSEEK_API_KEY,
-    base_url="https://api.deepseek.com"
-)
+from deep_translator import GoogleTranslator
+from core.config import TARGET_LANGUAGE
 
 def translate_text(text: str):
-    response = client.chat.completions.create(
-        model="deepseek-chat",
-        messages=[
-            {"role": "system", "content": "请把识别结果翻译为简体中文，不要解释、润色"},
-            {"role": "user", "content": text}
-        ]
-    )
-    if not response.choices or not response.choices[0].message.content:
+    try:
+        # source='auto' 表示自动检测源语言，可以自行修改
+        translated = GoogleTranslator(source='auto', target=TARGET_LANGUAGE).translate(text)
+        return translated
+    except Exception as e:
+        print(f"{e}")
         return None
-    return response.choices[0].message.content.strip()
 
 
 def translate_and_print(text: str):
     translated = translate_text(text)
     if translated:
-        print(f"翻译：{translated}")
+        print(f"{translated}")

@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+node_modules/
+dist/
+.DS_Store
+web/
+
+
+**/__pycache__/

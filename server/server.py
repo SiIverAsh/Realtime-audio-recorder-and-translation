@@ -1,104 +1,98 @@
+import warnings
+
+from soundcard import SoundcardRuntimeWarning
+warnings.filterwarnings("ignore", category=SoundcardRuntimeWarning)
+
 import asyncio
 import threading
-import warnings
-from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List
-from soundcard import SoundcardRuntimeWarning
-
-
+from contextlib import asynccontextmanager
 from core.audio_manager import AudioManager
-
-try:
-    from core.config import FORCE_LANGUAGE
-except ImportError:
-    FORCE_LANGUAGE = None # 默认自动检测
-
-
-warnings.filterwarnings("ignore", category=SoundcardRuntimeWarning)
+from core.connect_utils import validate_llm_api
+from core.config import PROVIDER_CONFIG, FORCE_LANGUAGE
 
 # 全局状态管理
 class ServerState:
     def __init__(self):
-        self.active_connections: List[WebSocket] = []
+        self.active_connections: [] = []
         self.loop = None
         self.audio_manager = None
 
 state = ServerState()
 
 def broadcast_callback(original, translation):
-    """AudioManager 的回调函数"""
+    """音频识别回调：过滤空内容并发送至前端"""
+    if not original or not original.strip():
+        return 
     if state.loop and state.active_connections:
-        asyncio.run_coroutine_threadsafe(broadcast(original, translation), state.loop)
+        asyncio.run_coroutine_threadsafe(
+            broadcast(original.strip(), translation.strip() if translation else ""), 
+            state.loop
+        )
 
 async def broadcast(original, translation):
-    """向所有连接的客户端发送消息"""
+    """广播消息给所有 WebSocket 客户端"""
     for connection in list(state.active_connections):
         try:
             await connection.send_json({"original": original, "translation": translation})
         except:
-            pass
+            if connection in state.active_connections:
+                state.active_connections.remove(connection)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    state.loop = asyncio.get_running_loop() # type: ignore
+    """生命周期管理：启动音频线程"""
+    state.loop = asyncio.get_running_loop()
+    state.audio_manager = AudioManager(callback=broadcast_callback, language=FORCE_LANGUAGE)
     
-    # 初始化 AudioManager，传入回调函数和默认语言
-    print("正在初始化 AudioManager...")
-    state.audio_manager = AudioManager(callback=broadcast_callback, language=FORCE_LANGUAGE) # type: ignore
-    
-    # 在后台线程启动音频处理循环
-    t = threading.Thread(target=state.audio_manager.audio_process, daemon=True) # type: ignore
+    t = threading.Thread(target=state.audio_manager.audio_process, daemon=True)
     t.start()
-    print("服务已启动")
-    
+    print("RTTrans 服务已在后台线程启动")
     yield
-    
     if state.audio_manager:
         state.audio_manager.audio_stop()
 
 app = FastAPI(lifespan=lifespan)
-
-# 允许跨域
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     state.active_connections.append(websocket)
-    print(f"客户端已连接，当前连接数: {len(state.active_connections)}")
+    print(f"新连接已建立。当前连接数: {len(state.active_connections)}")
+    
     try:
         while True:
-            # 接收前端控制指令
-            data = await websocket.receive_json()
-            if isinstance(data, dict) and data.get("type") == "language":
-                lang = data.get("value")
-                # 如果是 "auto" 则设为 None (自动检测)
-                lang = None if lang == "auto" else lang
-                if state.audio_manager:
-                    state.audio_manager.language = lang
-                print(f"识别语言切换为: {lang}")
-            elif isinstance(data, dict) and data.get("type") == "target_language":
-                target_lang = data.get("value")
-                if state.audio_manager and target_lang:
-                    state.audio_manager.target_language = target_lang
-                print(f"翻译目标语言切换为: {target_lang}")
-            elif isinstance(data, dict) and data.get("type") == "translation_engine":
-                engine = data.get("value")
-                if state.audio_manager:
-                    state.audio_manager.translation_engine = engine
-                print(f"翻译引擎切换为: {engine}")
-            elif isinstance(data, dict) and data.get("type") == "llm_api_key":
-                key = data.get("value")
-                if state.audio_manager:
+            msg = await websocket.receive_json()
+            m_type = msg.get("type")
+
+            # 1. 调用校验逻辑
+            if m_type == "llm_api_key_validate":
+                key, prv = msg.get("value"), msg.get("provider")
+                is_valid, info = await validate_llm_api(key, prv)
+                
+                if is_valid and state.audio_manager:
+                    # 验证成功后更新管理器状态
                     state.audio_manager.llm_api_key = key
-                print(f"更新 LLM API Key")
+                    state.audio_manager.base_url = PROVIDER_CONFIG.get(prv)
+                
+                # 发送验证反馈日志 (保留 Toast)
+                await websocket.send_json({"type": "toast", "status": "success" if is_valid else "error", "message": info})
+
+            # 2. 调用 AudioManager 
+            elif m_type in ["full_config", "config_update"]:
+                if state.audio_manager:
+                    # 将复杂的配置判断传给核心
+                    info = state.audio_manager.update_config(msg.get("data", {}))
+                    
+                    # 发送配置同步反馈日志 (保留 Toast)
+                    await websocket.send_json({
+                        "type": "toast", 
+                        "status": "success", 
+                        "message": f"模式切换完成：{info}"
+                    })
+
     except WebSocketDisconnect:
         state.active_connections.remove(websocket)
         print("客户端断开连接")

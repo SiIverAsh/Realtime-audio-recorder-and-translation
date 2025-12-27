@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+
+@source "../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}";
+
+@theme {
+  --color-background: #050506;
+  --color-foreground: #ececed;
+}
+
+/* 基础样式微调 */
+@layer base {
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}

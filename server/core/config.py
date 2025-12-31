@@ -1,8 +1,11 @@
 import torch
 
-WHISPER_MODEL_PATH = "E:/faster_whisper_moudle/whisper-large-v3-float32" # 请替换Whisper模型路径
-# FASTER_CRISPERWHISPER_PATH = "D:/faster_whisper_moudle/faster_CrisperWhisper" # 请替换FasterCrisperWhisper模块路径
-TARGET_LANGUAGE = "zh-CN" # 翻译目标语言，例如 "zh-CN" (简体中文), "en" (英语)
+# WHISPER_MODEL_PATH = "E:/faster_whisper_moudle/whisper-large-v3-float32" # 请替换Whisper模型路径
+# # FASTER_CRISPERWHISPER_PATH = "D:/faster_whisper_moudle/faster_CrisperWhisper" # 请替换FasterCrisperWhisper模块路径
+WHISPER_MODEL_PATH = "..\\models\\ggml-base.bin" 
+VAD_MODEL_PATH = "..\\models\\silero_vad.onnx" 
+# FASTER_CRISPERWHISPER_PATH = "D:/faster_whisper_moudle/faster_CrisperWhisper" # 不再需要
+TARGET_LANGUAGE = "zh-CN" 
 SAMPLE_RATE = 16000     #采样率
 CHUNK_DURATION = 0.1    #每次读取的音频块长度
 BUFFER_DURATION = 10     #缓冲区长度

@@ -11,6 +11,7 @@ from contextlib import asynccontextmanager
 from core.audio_manager import AudioManager
 from core.connect_utils import validate_llm_api
 from core.config import PROVIDER_CONFIG, FORCE_LANGUAGE
+from core.service_logic import update_audio_config
 
 # 全局状态管理
 class ServerState:
@@ -84,7 +85,7 @@ async def websocket_endpoint(websocket: WebSocket):
             elif m_type in ["full_config", "config_update"]:
                 if state.audio_manager:
                     # 将复杂的配置判断传给核心
-                    info = state.audio_manager.update_config(msg.get("data", {}))
+                    info = update_audio_config(state.audio_manager, msg.get("data", {}))
                     
                     # 发送配置同步反馈日志 (保留 Toast)
                     await websocket.send_json({

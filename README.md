@@ -6,30 +6,32 @@
 3. 界面友好，部署之后可以直接在网页端使用（后续会做成一个较为轻量化的桌面应用）
 
 
-## 项目结构：
-  -server/: 服务器端代码
-    - core/: 后端核心文件
-      - audio_capture.py: 
-      - audio_manager.py: 
-      - config.py: 配置文件
-      - connect_utils.py:
-      - service_logic.py: 
-      - vad_engine.py: 语音活动检测模块
-      - whisper_init.py: 
-      - translator.py: 翻译模块，利用LLMapi进行实时翻译
-    - server.py: 服务器端主程序，负责处理前端请求和后端逻辑
-  -web/: 前端代码
-    - public/: 前端静态资源文件
-    - src/: 前端源代码文件
-      - App.js: 主应用文件
-      - index.js: 入口文件
-      - components/: 前端组件文件夹
-        - AudioPlayer.js: 音频播放组件
-        - ConfigPanel.js: 配置面板组件
-        - TranslationDisplay.js: 翻译显示组件
-      - styles/: 前端样式文件夹
-        - App.css: 主应用样式
-        - index.css: 入口样式
+## 项目结构
+
+```text
+├── server/                    # 服务器端代码
+│   ├── core/                  # 后端核心文件
+│   │   ├── audio_capture.py   # 录音模块
+│   │   ├── audio_manager.py   # 音频管理
+│   │   └── vad_engine.py      # 语音活动检测模块 (VAD)
+│   ├── config.py              # 配置文件
+│   ├── connect_utils.py       # 连接工具类
+│   ├── service_logic.py       # 业务逻辑
+│   ├── whisper_init.py        # Whisper 模型初始化
+│   ├── translator.py          # 翻译模块
+│   └── server.py              # 服务器主程序 (处理前后端请求)
+└── web/                       # 前端代码
+    ├── public/                # 静态资源文件
+    └── src/                   # 源代码文件
+        ├── App.js             # 主应用文件
+        ├── index.js           # 入口文件
+        ├── components/        # 前端组件
+        │   ├── AudioPlayer.js # 音频播放组件
+        │   ├── ConfigPanel.js # 配置面板组件
+        │   └── TranslationDisplay.js # 翻译显示组件
+        └── styles/            # 样式文件夹
+            ├── App.css        # 主应用样式
+            └── index.css      # 入口样式
 
 ## 如何使用
 
@@ -78,8 +80,11 @@ python server.py
 
 
 ## 注意事项
-1、确保安装了依赖、配置好了虚拟环境（python --version确定环境，pip list确定已安装的依赖包）
-2、确保下载或缓存whisper模型
-3、确保指定好了自己的LLMapi-key（如果没有指定那就默认是Google_Translate）
-4、本项目可以在看无字幕与翻译的视频、语音的时候使用，但是无法进行听歌识别歌词
-5、如果觉得本项目对你日常有帮助，欢迎点个star支持一下，谢谢！
+
+* 环境检查：确保已安装依赖并配置虚拟环境。
+  * 验证环境：`python --version`
+  * 验证包：`pip list`
+* 模型准备：请确保已预先下载或缓存 **Whisper** 模型。
+* API 配置：需指定 `LLMapi-key`；若未指定，系统将默认调用 `Google Translate`。
+* 适用场景：本项目适用于无字幕视频、实时语音翻译。*注意：暂不支持歌词识别。*
+* 支持作者：如果这个项目对你有帮助，欢迎点个Star，谢谢！

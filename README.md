@@ -8,7 +8,7 @@
 
 ## 项目结构
 
-```text
+text
 ├── server/                    # 服务器端代码
 │   ├── core/                  # 后端核心文件
 │   │   ├── audio_capture.py   # 录音模块
@@ -32,6 +32,7 @@
         └── styles/            # 样式文件夹
             ├── App.css        # 主应用样式
             └── index.css      # 入口样式
+
 
 ## 如何使用
 
@@ -62,12 +63,14 @@ cd web
 npm install
 npm run dev
 ```
+
  5.然后输入以下命令运行后端，默认在8000端口运行
 
- ```
+```
 cd server
 python server.py
 ```
+
 6.在前端界面中，点击“开始识别”按钮，即可开始识别并且翻译，在“设置”选项中可以选择使用LLMapi还是Google Translate进行翻译，目前LLMapi支持的模型有：
 
 
@@ -76,7 +79,6 @@ python server.py
 
 
 ![运行演示](.gif)
-
 
 
 ## 注意事项

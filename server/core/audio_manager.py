@@ -3,9 +3,9 @@ import threading
 import numpy as np
 from core.audio_capture import get_mic
 from core.whisper_init import init_whisper
-from core.vad_engine import init_vad, detect_speech
-from core.translator import translate_text
-from core.config import SAMPLE_RATE, MIN_SPEECH_DURATION, SILENCE_THRESHOLD, TARGET_LANGUAGE, TRANSLATION_ENGINE, LLM_API_KEY, PROVIDER_CONFIG
+from core.silero_vad_engine import init_vad, detect_speech
+from core.service_logic import process_translation
+from core.config import SAMPLE_RATE, MIN_SPEECH_DURATION, SILENCE_THRESHOLD, TARGET_LANGUAGE, TRANSLATION_ENGINE, LLM_API_KEY
 
 class AudioManager:
     def __init__(self, callback=None, language=None):
@@ -30,7 +30,7 @@ class AudioManager:
                 chunk_mono = chunk.mean(axis=1).astype(np.float32)
                 self.audio_buffer.extend(chunk_mono)
 
-                buffer_np = np.array(self.audio_buffer)
+                buffer_np = np.array(self.audio_buffer, dtype=np.float32)   #由于whispercpp对输入格式要求float32
                 speech_timestamps = detect_speech(buffer_np, self.vad_model)
 
 
@@ -47,57 +47,29 @@ class AudioManager:
                     duration_sec = len(speech_audio) / SAMPLE_RATE
 
                     if duration_sec >= MIN_SPEECH_DURATION:
-                        # 识别时，记录 Whisper 探测到的语言
-                        segments, info = self.whisper.transcribe(
-                            speech_audio, beam_size=5, language=self.language
+                        print(f"VAD检测到语音 ({duration_sec:.2f}s)，开始识别...")
+                        # # 识别时，记录 Whisper 探测到的语言
+                        # segments, info = self.whisper.transcribe(
+                        #     speech_audio, beam_size=5, language=self.language
+                        # Whisper CPP 识别
+                        # pywhispercpp transcribe 返回 segments 列表
+                        segments = self.whisper.transcribe(
+                            speech_audio, 
+                            language=self.language if self.language else 'auto',
+                            n_threads=6
                         )
-                        detected_lang = info.language 
+                        # detected_lang = info.language 
+                        
+                        # whisper.cpp 绑定通常较难直接获取 info.language，这里使用配置语言或标记为 auto
+                        detected_lang = self.language if self.language else "auto"
                         combined_text = "".join(seg.text.strip() for seg in segments)
                         
                         if combined_text:
                             print(f"识别:{combined_text}")
                             threading.Thread(
-                                target=self._handle_result,
-                                args=(combined_text, detected_lang), 
+                                target=process_translation,
+                                args=(combined_text, detected_lang, self.target_language, self.translation_engine, self.llm_api_key, self.base_url, self.callback), 
                                 daemon=True
                             ).start()
 
                     self.audio_buffer.clear()
-
-    def _handle_result(self, text, source_lang):
-        """修复：传入 source_lang 彻底解决 Google 翻译 None 报错"""
-        try:
-            translation = translate_text(
-                text, 
-                source=source_lang, 
-                target=self.target_language, 
-                engine=self.translation_engine, 
-                api_key=self.llm_api_key,
-                base_url=self.base_url
-            )
-            if self.callback:
-                self.callback(text, translation)
-        except Exception as e:
-            print(f"Handle Result Error: {e}")
-    
-    def update_config(self, data: dict):
-        """
-        统一处理来自前端的配置更新
-        处理变量名对齐 (camelCase -> snake_case)
-        """
-        if "language" in data:
-            self.language = data["language"]
-        
-        if "targetLanguage" in data: 
-            self.target_language = data["targetLanguage"]
-            
-        if "engine" in data:
-            self.translation_engine = data["engine"]
-            
-        if "apiKey" in data:
-            self.llm_api_key = data["apiKey"]
-            
-        if "provider" in data:
-            self.base_url = PROVIDER_CONFIG.get(data["provider"])
-            
-        return f"配置已同步：{self.target_language}"

@@ -10,7 +10,7 @@
 
 ```
 text
-├── server/                    # 服务器端代码
+├── server/                    # 服务器端
 │   ├── core/                  # 后端核心文件
 │   │   ├── audio_capture.py   # 录音模块
 │   │   ├── audio_manager.py   # 音频管理
@@ -21,18 +21,15 @@ text
 │   ├── whisper_init.py        # Whisper 模型初始化
 │   ├── translator.py          # 翻译模块
 │   └── server.py              # 服务器主程序 (处理前后端请求)
-└── web/                       # 前端代码
+└── web/                       # 前端
     ├── public/                # 静态资源文件
     └── src/                   # 源代码文件
-        ├── App.js             # 主应用文件
-        ├── index.js           # 入口文件
-        ├── components/        # 前端组件
-        │   ├── AudioPlayer.js # 音频播放组件
-        │   ├── ConfigPanel.js # 配置面板组件
-        │   └── TranslationDisplay.js # 翻译显示组件
-        └── styles/            # 样式文件夹
-            ├── App.css        # 主应用样式
-            └── index.css      # 入口样式
+        ├── assets/             # 静态资源文件
+        ├── App.tsx             # 主应用
+        ├── index.css          
+        ├── index.tsx          
+        └── main.tsx           
+
 ```
 
 ## 如何使用

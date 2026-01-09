@@ -1,27 +1,24 @@
 import os
-# from faster_whisper import WhisperModel
-from pywhispercpp.model import Model
-from core.config import WHISPER_MODEL_PATH 
+import threading
+# 假设pywhispercpp的Whisper模型类
+from pywhispercpp.model import Model as Whisper 
+from core.config import WHISPER_MODEL_PATH
 
-# from core.config import FASTER_CRISPERWHISPER_PATH
+_whisper_model_instance = None
+_model_initialization_lock = threading.Lock()
+model_lock = threading.Lock() # 全局模型访问锁，用于保护 transcribe 调用
 
-
-def init_whisper(model_path=WHISPER_MODEL_PATH):
-    # print("加载 Whisper")
-    # return WhisperModel(
-    #     model_path,
-    #     # FASTER_CRISPERWHISPER_PATH,
-    #     device="cuda" ,
-    #     compute_type="float16",
-    # )
-
-    # 如果检测到 CUDA，设置 n_gpu_layers 以将计算卸载到 GPU
-    # n_gpu_layers = 64 if USE_CUDA else 0
-
-    return Model(
-        model_path, 
-        n_threads=6, 
-        # n_gpu_layers=n_gpu_layers,
-        print_realtime=False, 
-        print_progress=False
-    )
+def init_whisper():
+    global _whisper_model_instance
+    with _model_initialization_lock:
+        if _whisper_model_instance is None:
+            print(f"Loading Whisper model from {WHISPER_MODEL_PATH} for the first time...")
+            if not os.path.exists(WHISPER_MODEL_PATH):
+                raise FileNotFoundError(f"Whisper model file not found at {WHISPER_MODEL_PATH}")
+            try:
+                _whisper_model_instance = Whisper(WHISPER_MODEL_PATH)
+                print("Whisper model loaded successfully.")
+            except Exception as e:
+                print(f"Error loading Whisper model: {e}")
+                raise
+        return _whisper_model_instance

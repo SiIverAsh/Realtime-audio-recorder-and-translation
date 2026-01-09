@@ -3,6 +3,7 @@ import warnings
 from soundcard import SoundcardRuntimeWarning
 warnings.filterwarnings("ignore", category=SoundcardRuntimeWarning)
 
+import json
 import asyncio
 import threading
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -16,30 +17,55 @@ from core.service_logic import update_audio_config
 # 全局状态管理
 class ServerState:
     def __init__(self):
-        self.active_connections: [] = []
+        self.active_connections: list[WebSocket] = []
         self.loop = None
         self.audio_manager = None
 
 state = ServerState()
 
-def broadcast_callback(original, translation):
-    """音频识别回调：过滤空内容并发送至前端"""
-    if not original or not original.strip():
-        return 
-    if state.loop and state.active_connections:
-        asyncio.run_coroutine_threadsafe(
-            broadcast(original.strip(), translation.strip() if translation else ""), 
-            state.loop
-        )
-
-async def broadcast(original, translation):
+async def broadcast(data: dict):
     """广播消息给所有 WebSocket 客户端"""
     for connection in list(state.active_connections):
         try:
-            await connection.send_json({"original": original, "translation": translation})
+            await connection.send_json(data)
         except:
             if connection in state.active_connections:
                 state.active_connections.remove(connection)
+
+def broadcast_callback(original, translation, is_final=True):
+    """
+    回调函数：由 AudioManager 调用
+    """
+    # 使用函数属性来存储上一次的原文，避免全局变量污染
+    if not hasattr(broadcast_callback, "last_original"):
+        broadcast_callback.last_original = None
+
+    if is_final:
+        # 如果是同一个句子的翻译更新（流式），在同一行刷新
+        if broadcast_callback.last_original == original:
+            print(f"\r[Trans] {original} -> {translation}", end="", flush=True)
+        else:
+            # 新句子，先换行（结束上一行的刷新），再打印
+            if broadcast_callback.last_original is not None:
+                print() 
+            print(f"[Final] {original}")
+            if translation:
+                print(f"[Trans] {original} -> {translation}", end="", flush=True)
+            
+        broadcast_callback.last_original = original
+    else:
+        # 中间结果：在当前行实时刷新（灰字效果）
+        # 注意：中间结果不更新 last_original，以免干扰最终结果的判断
+        print(f"\r[Live] {original}", end="", flush=True)
+
+    data = {
+        "original": original,
+        "translation": translation,
+        "is_final": is_final
+    }
+    # 在线程中运行异步代码
+    if state.loop:
+        asyncio.run_coroutine_threadsafe(broadcast(data), state.loop)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

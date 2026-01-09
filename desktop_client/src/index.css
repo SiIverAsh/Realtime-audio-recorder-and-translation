@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@source "../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}";
+
+@theme {
+  --color-background: transparent;
+  --color-foreground: #ececed;
+}
+
+/* 基础全局样式 */
+@layer base {
+  body {
+    @apply bg-transparent text-foreground antialiased overflow-hidden;
+  }
+}
+
+/* 允许拖拽整个窗口的区域 */
+.drag-region {
+  -webkit-app-region: drag;
+}
+
+/* 不允许拖拽区域 */
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* 文本描边样式，确保在不同背景下都清晰 */
+.lyrics-text {
+  -webkit-text-stroke: 1px rgba(0,0,0,0.5); 
+  text-shadow: 
+    0px 2px 4px rgba(0,0,0,0.9),
+    0px 0px 10px rgba(0,0,0,0.5);
+}

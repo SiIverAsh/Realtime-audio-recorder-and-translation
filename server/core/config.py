@@ -15,7 +15,7 @@ VAD_THRESHOLD = 0.3     #VAD阈值
 STREAMING_INTERVAL = 0.5 # 流式识别尝试间隔
 
 USE_CUDA = torch.cuda.is_available()
-# FORCE_LANGUAGE = "zh"  # 强制识别语言代码
+FORCE_LANGUAGE = "zh"  # 强制识别语言代码
 
 # --- 翻译引擎设置 ---
 TRANSLATION_ENGINE = "google" 

@@ -7,3 +7,4 @@ def get_mic():
     frames_per_chunk = int(SAMPLE_RATE * CHUNK_DURATION)
     audio_buffer = deque(maxlen=int(SAMPLE_RATE * BUFFER_DURATION))
     return mic, frames_per_chunk, audio_buffer
+    

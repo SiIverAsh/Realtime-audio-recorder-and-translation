@@ -1,7 +1,7 @@
 from core.translator import translate_text
 from core.config import PROVIDER_CONFIG
 
-def process_translation(text, source_lang, target_lang, engine, api_key, base_url, callback):
+def process_translation(text, source_lang, target_lang, engine, api_key, base_url, callback, timestamp=None):
     """处理翻译并回调"""
     try:
         translation = translate_text(
@@ -13,9 +13,13 @@ def process_translation(text, source_lang, target_lang, engine, api_key, base_ur
             base_url=base_url
         )
         if callback:
-            callback(text, translation)
+            # 翻译完成，发送最终结果
+            callback(text, translation, step="final", timestamp=timestamp)
     except Exception as e:
         print(f"Handle Result Error: {e}")
+        if callback:
+            callback(text, f"[Error] {e}", step="error", timestamp=timestamp)
+
 
 def update_audio_config(manager, data: dict):
     """

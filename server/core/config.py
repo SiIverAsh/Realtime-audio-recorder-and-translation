@@ -8,18 +8,20 @@ VAD_MODEL_PATH = "..\\models\\silero_vad.onnx"
 TARGET_LANGUAGE = "zh-CN" 
 SAMPLE_RATE = 16000     #采样率
 CHUNK_DURATION = 0.1    #每次读取的音频块长度
-BUFFER_DURATION = 10     #缓冲区长度
+BUFFER_DURATION = 20     #缓冲区长度
 MIN_SPEECH_DURATION = 0.1    #最小语音持续时间
-SILENCE_THRESHOLD = 0.2  #静音阈值
+SILENCE_THRESHOLD = 0.3  #静音阈值 (流式模式下稍微调高)
 VAD_THRESHOLD = 0.3     #VAD阈值
+STREAMING_INTERVAL = 0.5 # 流式识别尝试间隔
+
 USE_CUDA = torch.cuda.is_available()
-FORCE_LANGUAGE = "ja"  # 强制识别语言代码，例如 "ja" 表示日语；设置为 None 则自动检测语言
+# FORCE_LANGUAGE = "zh"  # 强制识别语言代码
 
 # --- 翻译引擎设置 ---
 TRANSLATION_ENGINE = "google" 
 LLM_API_KEY = "***"  
-LLM_BASE_URL = "https://api.deepseek.com"  # API Base URL (例如 DeepSeek 或 OpenAI)
-LLM_MODEL = "deepseek-chat"  # 模型名称
+LLM_BASE_URL = "https://api.deepseek.com"  
+LLM_MODEL = "deepseek-chat"  
 
 # --- API供应商 ---
 PROVIDER_CONFIG = {

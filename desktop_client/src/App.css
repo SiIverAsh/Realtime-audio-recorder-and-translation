@@ -1,0 +1,23 @@
+/* index.css */
+:root {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* 防止出现系统滚动条影响缩放 */
+  background-color: transparent;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0; /* 必须删掉之前的 2rem padding */
+  text-align: center;
+}
+
+/* 之前 logo 和 keyframes 如果不用可以删掉，保留也不影响 */

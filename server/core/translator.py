@@ -2,7 +2,7 @@ import requests
 from deep_translator import GoogleTranslator
 from core.config import TARGET_LANGUAGE, TRANSLATION_ENGINE, LLM_API_KEY, LLM_BASE_URL, LLM_MODEL
 
-def translate_with_llm(text: str, target: str, api_key: str = None, base_url: str = None):
+def translate_with_llm(text: str, target: str, api_key: str = None, base_url: str = None): #type: ignore
     """使用 LLM API 进行翻译"""
     key = api_key if api_key else LLM_API_KEY
     url = base_url if base_url else LLM_BASE_URL
@@ -10,12 +10,11 @@ def translate_with_llm(text: str, target: str, api_key: str = None, base_url: st
     if not key or not url:
         return None
 
-
     headers = {
         "Authorization": f"Bearer {key}"
     }
     
-
+    # 简单的目标语言映射
     target_name = "Chinese" if "zh" in target.lower() else target
     
     messages = [
@@ -43,24 +42,32 @@ def translate_with_llm(text: str, target: str, api_key: str = None, base_url: st
         data = response.json()
         return data["choices"][0]["message"]["content"].strip()
     except Exception as e:
-        print(f"LLM Translation Exception: {e}")
+        print(f"LLM 翻译异常: {e}")
         return None
 
-def translate_text(text: str, source: str = 'auto', target: str = TARGET_LANGUAGE, engine: str = None, api_key: str = None, base_url: str = None):
-    """通用翻译入口"""
+def translate_text(text: str, source: str = 'auto', target: str = TARGET_LANGUAGE, engine: str = None, api_key: str = None, base_url: str = None): #type: ignore
+    """通用翻译入口函数"""
     safe_source = source if source else 'auto'
     safe_target = target if target else 'zh-CN'
     
+    # 修复: Google Translator 不支持 'zh'，需映射为 'zh-CN'
+    if safe_source == 'zh':
+        safe_source = 'zh-CN'
+    if safe_target == 'zh':
+        safe_target = 'zh-CN'
+    
     current_engine = engine if engine else TRANSLATION_ENGINE
+    
+    # 1. 尝试使用 LLM 翻译
     if current_engine == "llm":
         result = translate_with_llm(text, safe_target, api_key=api_key, base_url=base_url)
         if result: return result
         print("LLM 翻译失败，回退到 Google 翻译...")
 
     try:
-        # 回退
+        # 2. 回退机制：使用 Google 翻译
         translated = GoogleTranslator(source=safe_source, target=safe_target).translate(text)
         return translated
     except Exception as e:
-        print(f"Google Translation Error: {e}")
+        print(f"Google 翻译错误: {e}")
         return None

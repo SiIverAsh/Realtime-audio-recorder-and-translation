@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+.venv/
+package-lock.json
+
+# Build output
+dist/
+dist-ssr/
+*.local
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Project specific
+test/
+.env
+models/*.bin
+models/**/*.bin
+**/__pycache__/
+*.pyc
+
+# Keep the directories but ignore their node_modules
+desktop_client/node_modules/
+web/node_modules/

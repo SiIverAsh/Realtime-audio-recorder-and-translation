@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import { Toaster } from 'sonner';
 
-import { GlobalStyles } from './components/ui/GlobalStyles';
 import { Header } from './components/layout/Header';
 import { LogList } from './components/log/LogList';
 
@@ -54,7 +53,6 @@ function App() {
 
   return (
     <div className="w-screen h-screen overflow-hidden bg-transparent flex flex-col relative font-sans select-none" onMouseMove={resetIdleTimer}>
-      <GlobalStyles />
       <Toaster theme="dark" position="top-center" richColors />
       
       <Header 

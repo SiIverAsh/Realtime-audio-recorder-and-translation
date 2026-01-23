@@ -32,38 +32,17 @@
     0px 0px 10px rgba(0,0,0,0.5);
 }
 
-/* Custom Scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px; /* Slightly thinner */
+/* 隐藏滚动条但保留功能 */
+.no-scrollbar::-webkit-scrollbar { 
+  display: none; 
+}
+.no-scrollbar { 
+  -ms-overflow-style: none; 
+  scrollbar-width: none; 
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent; 
-  margin-top: 10px;
-  margin-bottom: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: transparent; /* Hidden by default */
-  border-radius: 10px;
-  transition: background-color 0.3s ease;
-}
-
-.custom-scrollbar:hover::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.2); /* Subtle dark on hover */
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(0, 0, 0, 0.4); /* Slightly darker on direct grab */
-}
-
-/* Firefox scrollbar support */
-.custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
-  transition: scrollbar-color 0.3s ease;
-}
-
-.custom-scrollbar:hover {
-  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+/* 全局选中文本样式 */
+::selection { 
+  background: rgba(99, 102, 241, 0.3); 
+  color: white; 
 }
